@@ -14,6 +14,9 @@ import {
 } from "./scrapbookStorage";
 import "./App.css";
 
+const CANVAS_WIDTH = 800;
+const CANVAS_HEIGHT = 1000;
+
 export default function App() {
   const [doc, setDoc] = useState(() => getDefaultAppState());
   const [selectedId, setSelectedId] = useState(null);
@@ -266,12 +269,12 @@ export default function App() {
         </div>
       ) : null}
 
-      <main className="flex flex-1 flex-col items-center justify-center px-4 pb-36 pt-4">
+      <main className="flex flex-1 flex-col items-center justify-center px-4 pb-8 pt-4 sm:pl-48">
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-amber-50 to-amber-100 p-4 shadow-2xl">
           <Stage
-            width={800}
-            height={520}
-            className="max-h-[min(520px,70vh)] min-h-[520px] w-full max-w-full rounded-2xl"
+            width={CANVAS_WIDTH}
+            height={CANVAS_HEIGHT}
+            className="max-h-[min(CANVAS_HEIGHT,70vh)] min-h-[CANVAS_HEIGHT] w-full max-w-full rounded-2xl"
             style={{
               background:
                 "repeating-linear-gradient(to bottom, rgba(0,0,0,0.03) 0px, rgba(0,0,0,0.03) 1px, transparent 1px, transparent 36px)",
