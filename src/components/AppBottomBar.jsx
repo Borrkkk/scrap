@@ -5,7 +5,9 @@ export default function AppBottomBar({
   onDeleteSelected,
   onUploadImage,
   onAddText,
+  onEditCaption,
   canDelete,
+  canEditCaption,
 }) {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
@@ -55,6 +57,15 @@ export default function AppBottomBar({
         >
           Add text
         </button>
+        {canEditCaption ? (
+          <button
+            type="button"
+            className="rounded-xl bg-rose-700 px-3 py-2 text-sm font-bold text-white shadow-md transition-colors hover:bg-rose-800"
+            onClick={onEditCaption}
+          >
+            Edit caption
+          </button>
+        ) : null}
         <button
           type="button"
           disabled={!canDelete}

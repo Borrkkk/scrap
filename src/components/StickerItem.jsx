@@ -2,7 +2,7 @@ import { useRef, useEffect } from "react";
 import { Image as KonvaImage, Transformer } from "react-konva";
 import useImage from "use-image";
 
-const StickerItem = ({ image, isSelected, onSelect, onChange }) => {
+const StickerItem = ({ image, isSelected, onSelect, onChange, isViewMode }) => {
   const [img] = useImage(image.src);
   const shapeRef = useRef();
   const trRef = useRef();
@@ -21,13 +21,14 @@ const StickerItem = ({ image, isSelected, onSelect, onChange }) => {
         image={img}
         x={image.x}
         y={image.y}
-        draggable
+        draggable={!isViewMode}
         rotation={image.rotation}
         scaleX={image.scaleX}
         scaleY={image.scaleY}
-        onClick={onSelect}
-        onTap={onSelect}
+        onClick={!isViewMode ? onSelect : undefined}
+        onTap={!isViewMode ? onSelect : undefined}
         onDragEnd={(e) => {
+          if (isViewMode) return;
           onChange({
             ...image,
             x: e.target.x(),
@@ -35,6 +36,7 @@ const StickerItem = ({ image, isSelected, onSelect, onChange }) => {
           });
         }}
         onTransformEnd={(e) => {
+          if (isViewMode) return;
           const node = e.target;
           onChange({
             ...image,
@@ -46,7 +48,7 @@ const StickerItem = ({ image, isSelected, onSelect, onChange }) => {
           });
         }}
       />
-      {isSelected && <Transformer ref={trRef} rotateEnabled={true} />}
+      {isSelected && !isViewMode && <Transformer ref={trRef} rotateEnabled={true} />}
     </>
   );
 };

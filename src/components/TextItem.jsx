@@ -2,7 +2,7 @@ import { useRef, useEffect } from "react";
 import { Text as KonvaText, Transformer } from "react-konva";
 import { parseFontStyle } from "../textFormatting";
 
-const TextItem = ({ textItem, isSelected, onSelect, onChange }) => {
+const TextItem = ({ textItem, isSelected, onSelect, onChange, isViewMode }) => {
   const shapeRef = useRef();
   const trRef = useRef();
 
@@ -14,6 +14,7 @@ const TextItem = ({ textItem, isSelected, onSelect, onChange }) => {
   }, [isSelected]);
 
   const startTextEdit = () => {
+    if (isViewMode) return;
     const textNode = shapeRef.current;
     const stage = textNode.getStage();
     const layer = textNode.getLayer();
@@ -130,7 +131,7 @@ const TextItem = ({ textItem, isSelected, onSelect, onChange }) => {
         text={textItem.text}
         x={textItem.x}
         y={textItem.y}
-        draggable
+        draggable={!isViewMode}
         rotation={textItem.rotation}
         scaleX={textItem.scaleX}
         scaleY={textItem.scaleY}
@@ -142,11 +143,12 @@ const TextItem = ({ textItem, isSelected, onSelect, onChange }) => {
         textDecoration={textItem.textDecoration ?? ""}
         lineHeight={textItem.lineHeight ?? 1.2}
         width={textItem.width}
-        onClick={onSelect}
-        onTap={onSelect}
-        onDblClick={startTextEdit}
-        onDblTap={startTextEdit}
+        onClick={!isViewMode ? onSelect : undefined}
+        onTap={!isViewMode ? onSelect : undefined}
+        onDblClick={!isViewMode ? startTextEdit : undefined}
+        onDblTap={!isViewMode ? startTextEdit : undefined}
         onDragEnd={(e) => {
+          if (isViewMode) return;
           onChange({
             ...textItem,
             x: e.target.x(),
@@ -154,6 +156,7 @@ const TextItem = ({ textItem, isSelected, onSelect, onChange }) => {
           });
         }}
         onTransformEnd={(e) => {
+          if (isViewMode) return;
           const node = e.target;
           onChange({
             ...textItem,
@@ -166,6 +169,7 @@ const TextItem = ({ textItem, isSelected, onSelect, onChange }) => {
           });
         }}
         onTransform={(e) => {
+          if (isViewMode) return;
           const node = e.target;
           node.setAttrs({
             width: node.width() * node.scaleX(),
@@ -173,7 +177,7 @@ const TextItem = ({ textItem, isSelected, onSelect, onChange }) => {
           });
         }}
       />
-      {isSelected && (
+      {isSelected && !isViewMode && (
         <Transformer
           ref={trRef}
           rotateEnabled={true}

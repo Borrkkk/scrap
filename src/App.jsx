@@ -21,6 +21,7 @@ export default function App() {
   const [doc, setDoc] = useState(() => getDefaultAppState());
   const [selectedId, setSelectedId] = useState(null);
   const [stickerPickerOpen, setStickerPickerOpen] = useState(false);
+  const [isViewMode, setIsViewMode] = useState(false);
   const loadFileInputRef = useRef(null);
 
   const { pages, pageIndex } = doc;
@@ -87,6 +88,8 @@ export default function App() {
   const selectedItem = items.find((it) => it.id === selectedId) ?? null;
   const selectedTextItem =
     selectedItem?.type === "text" ? selectedItem : null;
+  const selectedImageItem =
+    selectedItem?.type === "image" ? selectedItem : null;
 
   const patchSelectedText = useCallback(
     (patch) => {
@@ -105,6 +108,7 @@ export default function App() {
   const handleUploadImage = (e) => {
     const file = e.target.files[0];
     if (file) {
+      const fileName = file.name.replace(/\.[^/.]+$/, "");
       const reader = new FileReader();
       reader.onload = () => {
         const result = reader.result;
@@ -119,6 +123,7 @@ export default function App() {
             scaleX: 0.5,
             scaleY: 0.5,
             rotation: 0,
+            caption: fileName || "Sweet memory",
           },
         ]);
       };
@@ -139,6 +144,21 @@ export default function App() {
     patchCurrentItems((prev) => prev.filter((item) => item.id !== selectedId));
     setSelectedId(null);
   }, [selectedId, patchCurrentItems]);
+
+  const handleEditSelectedCaption = useCallback(() => {
+    if (!selectedImageItem) return;
+    const currentCaption = selectedImageItem.caption || "";
+    const nextCaption = window.prompt("Edit photo caption", currentCaption);
+    if (nextCaption == null) return;
+    const trimmedCaption = nextCaption.trim();
+    patchCurrentItems((prev) =>
+      prev.map((item) =>
+        item.id === selectedImageItem.id
+          ? { ...item, caption: trimmedCaption || "Sweet memory" }
+          : item
+      )
+    );
+  }, [selectedImageItem, patchCurrentItems]);
 
   const handleSaveToFile = useCallback(() => {
     downloadScrapbookFile({ pages: doc.pages, pageIndex: doc.pageIndex });
@@ -258,9 +278,14 @@ export default function App() {
       <AppHeader
         onLoadFromFile={handleLoadFromFileClick}
         onSaveToFile={handleSaveToFile}
+        isViewMode={isViewMode}
+        onToggleViewMode={() => {
+          setIsViewMode((mode) => !mode);
+          setSelectedId(null);
+        }}
       />
 
-      {selectedTextItem ? (
+      {selectedTextItem && !isViewMode ? (
         <div className="z-30 flex w-full shrink-0 justify-center border-b border-amber-800/25 bg-white/95 px-3 py-2.5 shadow-sm backdrop-blur-sm">
           <TextFormatToolbar
             textItem={selectedTextItem}
@@ -289,6 +314,7 @@ export default function App() {
                     image={item}
                     isSelected={item.id === selectedId}
                     onSelect={() => setSelectedId(item.id)}
+                    isViewMode={isViewMode}
                     onChange={(newAttrs) => {
                       patchCurrentItems((prev) => {
                         const next = prev.slice();
@@ -302,6 +328,7 @@ export default function App() {
                     key={item.id}
                     image={item}
                     isSelected={item.id === selectedId}
+                    isViewMode={isViewMode}
                     onSelect={() => setSelectedId(item.id)}
                     onChange={(newAttrs) => {
                       patchCurrentItems((prev) => {
@@ -316,6 +343,7 @@ export default function App() {
                     key={item.id}
                     textItem={item}
                     isSelected={item.id === selectedId}
+                    isViewMode={isViewMode}
                     onSelect={() => setSelectedId(item.id)}
                     onChange={(newAttrs) => {
                       patchCurrentItems((prev) => {
@@ -372,13 +400,17 @@ export default function App() {
         </nav>
       </main>
 
-      <AppBottomBar
-        onOpenStickerPicker={() => setStickerPickerOpen(true)}
-        onDeleteSelected={deleteSelected}
-        onUploadImage={handleUploadImage}
-        onAddText={handleAddText}
-        canDelete={selectedId != null}
-      />
+      {!isViewMode ? (
+        <AppBottomBar
+          onOpenStickerPicker={() => setStickerPickerOpen(true)}
+          onDeleteSelected={deleteSelected}
+          onUploadImage={handleUploadImage}
+          onAddText={handleAddText}
+          onEditCaption={handleEditSelectedCaption}
+          canDelete={selectedId != null}
+          canEditCaption={selectedImageItem != null}
+        />
+      ) : null}
 
       <StickerPickerModal
         isOpen={stickerPickerOpen}

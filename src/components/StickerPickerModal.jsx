@@ -1,12 +1,13 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 
-const stickerGlob = import.meta.glob("../stickers/*.{svg,png,jpg,jpeg,webp,gif}", {
-  eager: true,
-  query: "?url",
-  import: "default",
-});
-
-console.log(stickerGlob);
+const stickerGlob = import.meta.glob(
+  "../stickers/*.{svg,SVG,png,PNG,jpg,JPG,jpeg,JPEG,webp,WEBP,gif,GIF}",
+  {
+    eager: true,
+    query: "?url",
+    import: "default",
+  }
+);
 function stickerEntries() {
   return Object.entries(stickerGlob).map(([path, url]) => ({
     url,
