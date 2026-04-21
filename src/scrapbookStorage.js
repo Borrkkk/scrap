@@ -1,17 +1,6 @@
 export const FORMAT_VERSION = 2;
 
-export const DEFAULT_ITEMS = [
-  {
-    id: 1,
-    type: "image",
-    src: "https://konvajs.org/assets/yoda.jpg",
-    x: 120,
-    y: 120,
-    scaleX: 0.5,
-    scaleY: 0.5,
-    rotation: 0,
-  },
-];
+export const DEFAULT_ITEMS = [];
 
 /** One page = array of layer items */
 export const DEFAULT_PAGES = [DEFAULT_ITEMS];
