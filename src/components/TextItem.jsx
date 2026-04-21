@@ -27,9 +27,12 @@ const TextItem = ({ textItem, isSelected, onSelect, onChange, isViewMode }) => {
 
     const textPosition = textNode.absolutePosition();
     const stageBox = stage.container().getBoundingClientRect();
+    const stageScaleX = stageBox.width / stage.width();
+    const stageScaleY = stageBox.height / stage.height();
+    const absScale = textNode.getAbsoluteScale();
     const areaPosition = {
-      x: stageBox.left + textPosition.x,
-      y: stageBox.top + textPosition.y,
+      x: stageBox.left + textPosition.x * stageScaleX,
+      y: stageBox.top + textPosition.y * stageScaleY,
     };
 
     const textarea = document.createElement("textarea");
@@ -39,14 +42,20 @@ const TextItem = ({ textItem, isSelected, onSelect, onChange, isViewMode }) => {
     textarea.style.position = "absolute";
     textarea.style.top = areaPosition.y + "px";
     textarea.style.left = areaPosition.x + "px";
-    textarea.style.width = textNode.width() - textNode.padding() * 2 + "px";
-    textarea.style.height = textNode.height() - textNode.padding() * 2 + 5 + "px";
-    textarea.style.fontSize = textNode.fontSize() + "px";
+    textarea.style.width =
+      (textNode.width() - textNode.padding() * 2) * stageScaleX + "px";
+    textarea.style.height =
+      (textNode.height() - textNode.padding() * 2 + 5) * stageScaleY + "px";
+    textarea.style.fontSize = textNode.fontSize() * stageScaleY + "px";
     textarea.style.border = "none";
     textarea.style.padding = "0px";
     textarea.style.margin = "0px";
     textarea.style.overflow = "hidden";
-    textarea.style.background = "none";
+    textarea.style.background = "#ffffff";
+    textarea.style.border = "1px solid rgba(120, 53, 15, 0.25)";
+    textarea.style.borderRadius = "6px";
+    textarea.style.boxShadow = "0 2px 10px rgba(0, 0, 0, 0.12)";
+    textarea.style.padding = "2px 4px";
     textarea.style.outline = "none";
     textarea.style.resize = "none";
     textarea.style.lineHeight = String(textNode.lineHeight());
@@ -64,7 +73,9 @@ const TextItem = ({ textItem, isSelected, onSelect, onChange, isViewMode }) => {
     if (rotation) {
       transform += "rotateZ(" + rotation + "deg)";
     }
-    transform += "translateY(-2px)";
+    const transformScaleX = absScale.x / Math.max(stageScaleX, 0.0001);
+    const transformScaleY = absScale.y / Math.max(stageScaleY, 0.0001);
+    transform += ` scale(${transformScaleX}, ${transformScaleY})`;
     textarea.style.transform = transform;
 
     textarea.style.height = "auto";
@@ -105,9 +116,10 @@ const TextItem = ({ textItem, isSelected, onSelect, onChange, isViewMode }) => {
 
     textarea.addEventListener("input", function () {
       const scale = textNode.getAbsoluteScale().x;
-      setTextareaWidth(textNode.width() * scale);
+      setTextareaWidth(textNode.width() * scale * stageScaleX);
       textarea.style.height = "auto";
-      textarea.style.height = textarea.scrollHeight + textNode.fontSize() + "px";
+      textarea.style.height =
+        textarea.scrollHeight + textNode.fontSize() * stageScaleY + "px";
     });
 
     const handleOutsideClick = (e) => {

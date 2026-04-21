@@ -16,6 +16,48 @@ import "./App.css";
 
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 1000;
+const MAX_UPLOAD_WIDTH = Math.floor(CANVAS_WIDTH / 2);
+const MAX_UPLOAD_HEIGHT = Math.floor(CANVAS_HEIGHT / 2);
+const DEFAULT_IMAGE_CAPTION = "Sweet memory";
+
+function readFileAsDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error("Could not read selected image."));
+    reader.readAsDataURL(file);
+  });
+}
+
+function loadImageElement(src) {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("Could not decode selected image."));
+    img.src = src;
+  });
+}
+
+async function resizeLargeImageToCanvasHalf(inputDataUrl) {
+  const img = await loadImageElement(inputDataUrl);
+  const width = img.naturalWidth || img.width;
+  const height = img.naturalHeight || img.height;
+  if (width <= MAX_UPLOAD_WIDTH && height <= MAX_UPLOAD_HEIGHT) {
+    return inputDataUrl;
+  }
+
+  const scale = Math.min(MAX_UPLOAD_WIDTH / width, MAX_UPLOAD_HEIGHT / height);
+  const nextWidth = Math.max(1, Math.round(width * scale));
+  const nextHeight = Math.max(1, Math.round(height * scale));
+
+  const canvas = document.createElement("canvas");
+  canvas.width = nextWidth;
+  canvas.height = nextHeight;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Could not resize selected image.");
+  ctx.drawImage(img, 0, 0, nextWidth, nextHeight);
+  return canvas.toDataURL("image/png");
+}
 
 export default function App() {
   const [doc, setDoc] = useState(() => getDefaultAppState());
@@ -105,29 +147,30 @@ export default function App() {
     [selectedId, patchCurrentItems]
   );
 
-  const handleUploadImage = (e) => {
+  const handleUploadImage = async (e) => {
     const file = e.target.files[0];
     if (file) {
       const fileName = file.name.replace(/\.[^/.]+$/, "");
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result;
+      try {
+        const result = await readFileAsDataURL(file);
+        const resizedResult = await resizeLargeImageToCanvasHalf(result);
         patchCurrentItems((prev) => [
           ...prev,
           {
             id: Date.now(),
             type: "image",
-            src: result,
+            src: resizedResult,
             x: 250,
             y: 200,
             scaleX: 0.5,
             scaleY: 0.5,
             rotation: 0,
-            caption: fileName || "Sweet memory",
+            caption: fileName || DEFAULT_IMAGE_CAPTION,
           },
         ]);
-      };
-      reader.readAsDataURL(file);
+      } catch {
+        window.alert("That image could not be read.");
+      }
     }
     e.target.value = "";
   };
@@ -154,7 +197,7 @@ export default function App() {
     patchCurrentItems((prev) =>
       prev.map((item) =>
         item.id === selectedImageItem.id
-          ? { ...item, caption: trimmedCaption || "Sweet memory" }
+          ? { ...item, caption: trimmedCaption || DEFAULT_IMAGE_CAPTION }
           : item
       )
     );
@@ -187,7 +230,11 @@ export default function App() {
           window.alert("That file is not a valid scrapbook.");
           return;
         }
-        setDoc(parsed);
+        setDoc({
+          ...parsed,
+          pageIndex: 0,
+        });
+        setIsViewMode(true);
         setSelectedId(null);
       } catch {
         window.alert("Could not read that file.");
@@ -286,7 +333,7 @@ export default function App() {
       />
 
       {selectedTextItem && !isViewMode ? (
-        <div className="z-30 flex w-full shrink-0 justify-center border-b border-amber-800/25 bg-white/95 px-3 py-2.5 shadow-sm backdrop-blur-sm">
+        <div className="fixed inset-x-0 top-0 z-30 flex w-full shrink-0 justify-center border-b border-amber-800/25 bg-white/95 px-3 py-2.5 shadow-sm backdrop-blur-sm">
           <TextFormatToolbar
             textItem={selectedTextItem}
             onPatch={patchSelectedText}

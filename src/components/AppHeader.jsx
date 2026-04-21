@@ -6,7 +6,7 @@ export default function AppHeader({
 }) {
   return (
     <header className="flex shrink-0 items-center justify-between gap-4 border-b border-amber-800/80 bg-amber-900 px-4 py-3 text-amber-50 shadow-md sm:px-6">
-      <h1 className="text-lg font-bold tracking-tight sm:text-xl">Scrapbook</h1>
+      <h1 className="text-lg font-bold tracking-tight sm:text-xl">Happy 4 bebi</h1>
       <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
         <button
           type="button"

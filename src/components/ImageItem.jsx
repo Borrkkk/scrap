@@ -38,6 +38,13 @@ const ImageItem = ({ image, isSelected, onSelect, onChange, isViewMode }) => {
     }
   }, [isSelected, isViewMode]);
 
+  useEffect(() => {
+    if (!isViewMode) {
+      setHoverRotation(0);
+      setHoverScale(1);
+    }
+  }, [isViewMode]);
+
   if (!img) {
     return null;
   }
